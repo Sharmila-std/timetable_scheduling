@@ -1,0 +1,57 @@
+{% extends "dashboard_layout.html" %}
+
+{% block dashboard_content %}
+<h2 style="margin-bottom: 2rem; color: var(--primary-color);">Manage Leave Requests</h2>
+
+<div class="glass-card">
+    {% if requests %}
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid #ddd;">
+                <th style="padding: 10px;">Faculty</th>
+                <th style="padding: 10px;">Type</th>
+                <th style="padding: 10px;">Dates</th>
+                <th style="padding: 10px;">Reason</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px; font-weight: bold;">{{ req.faculty_name }}</td>
+                <td style="padding: 10px;">{{ req.type }}</td>
+                <td style="padding: 10px;">{{ req.start_date }} to {{ req.end_date }}</td>
+                <td style="padding: 10px;">{{ req.reason }}</td>
+                <td style="padding: 10px;">
+                    <span
+                        class="badge badge-{{ 'success' if req.status == 'Approved' else 'danger' if req.status == 'Rejected' else 'warning' }}">
+                        {{ req.status }}
+                    </span>
+                </td>
+                <td style="padding: 10px;">
+                    {% if req.status == 'Pending' %}
+                    <form action="/admin/manage_leave/{{ req._id }}" method="POST" style="display: flex; gap: 5px;">
+                        <button name="action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                        <button name="action" value="reject" class="btn btn-sm btn-danger">Reject</button>
+                    </form>
+                    {% elif req.status == 'Approved' %}
+                    <form action="/admin/generate_substitution/{{ req._id }}" method="POST">
+                        <button class="btn btn-sm btn-warning"
+                            style="background-color: #ff9800; color: white; border: none;">Generate Sub</button>
+                    </form>
+                    {% else %}
+                    <span style="color: #888;">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No pending leave requests.</p>
+    {% endif %}
+</div>
+</main>
+</div>
+{% endblock %}

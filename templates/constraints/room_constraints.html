@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+
+{% block title %}Room Constraints - AutoScheduler{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">AutoScheduler</a>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="nav-item">Query Dashboard</a>
+            <div
+                style="padding: 0.8rem 1.5rem; font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-top: 1rem;">
+                Constraint Engine</div>
+            <a href="/admin/constraints/availability" class="nav-item">Faculty Availability</a>
+            <a href="/admin/constraints/rooms" class="nav-item active">Room Constraints</a>
+            <a href="#" class="nav-item">Global Constraints</a>
+            <a href="#" class="nav-item">Preferences</a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #e0e0e0;">
+            <div style="margin-bottom: 1rem;">
+                <small style="color: #666;">Logged in as:</small><br>
+                <strong>{{ name }}</strong>
+            </div>
+            <a href="/logout" class="btn btn-outline" style="width: 100%; text-align: center;">Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="glass-card animate-fade-in">
+            <h2 style="margin-bottom: 1rem;">Room Constraints</h2>
+            <p style="margin-bottom: 2rem; color: #666;">Define specific usage rules for rooms. (Hard Constraints)</p>
+
+            <form action="/admin/constraints/rooms" method="POST">
+                <div style="margin-bottom: 2rem;">
+                    <label>Select Room</label>
+                    <select name="room_id" id="roomSelect" onchange="loadRoomConstraints()" required>
+                        <option value="" disabled selected>-- Choose Room --</option>
+                        {% for room in rooms %}
+                        <option value="{{ room._id }}">{{ room.number }} ({{ room.type }} - Cap: {{ room.capacity }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Allowed Usage Types</label>
+                    <div style="display: flex; gap: 2rem;">
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" name="allowed_types" value="Lecture" id="type_lecture"
+                                style="width: auto; margin-right: 8px;">
+                            <label for="type_lecture" style="cursor: pointer;">Lecture / Theory</label>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" name="allowed_types" value="Lab" id="type_lab"
+                                style="width: auto; margin-right: 8px;">
+                            <label for="type_lab" style="cursor: pointer;">Practical / Lab</label>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" name="allowed_types" value="Seminar" id="type_seminar"
+                                style="width: auto; margin-right: 8px;">
+                            <label for="type_seminar" style="cursor: pointer;">Seminar / Event</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Dedicated Department
+                        (Optional)</label>
+                    <input type="text" name="dedicated_dept" id="dedicated_dept" placeholder="e.g. CS only"
+                        autocomplete="off">
+                    <small style="color: #888;">Leave blank if this room can be used by any department.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Room Rules</button>
+            </form>
+        </div>
+
+        <!-- Data holder for JS -->
+        <div id="constraints-data" data-map="{{ constraints_map|tojson|forceescape }}" style="display:none;"></div>
+    </main>
+</div>
+
+<script>
+    // Pass the constraint map from Python to JS via data attribute
+    const dataElement = document.getElementById('constraints-data');
+    const constraintsMap = JSON.parse(dataElement.dataset.map);
+
+    function loadRoomConstraints() {
+        const roomId = document.getElementById('roomSelect').value;
+
+        // Reset form
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.getElementById('dedicated_dept').value = '';
+
+        if (constraintsMap[roomId]) {
+            const data = constraintsMap[roomId];
+
+            // Set Allowed Types using array includes
+            if (data.allowed_types) {
+                data.allowed_types.forEach(type => {
+                    const cb = document.querySelector(`input[value="${type}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+
+            // Set Dept
+            if (data.dedicated_dept) {
+                document.getElementById('dedicated_dept').value = data.dedicated_dept;
+            }
+        }
+    }
+</script>
+{% endblock %}

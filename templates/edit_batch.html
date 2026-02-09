@@ -1,0 +1,75 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Edit Batch - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: flex; justify-content: center;">
+    <div class="glass-card animate-fade-in" style="width: 100%; max-width: 600px;">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">Edit Batch</h2>
+        <form action="/admin/edit_batch/{{ batch._id }}" method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label>Group Name</label>
+                <input type="text" name="name" value="{{ batch.name }}" required>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label>Size</label>
+                <input type="number" name="size" value="{{ batch.size }}" required>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label>Class Advisor</label>
+                <select name="class_advisor"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">Select Class Advisor</option>
+                    {% for teacher in teachers %}
+                    {% if teacher.name in used_advisors %}
+                    <option value="{{ teacher.name }}" disabled style="color: #999;">{{ teacher.name }} (Assigned)
+                    </option>
+                    {% else %}
+                    <option value="{{ teacher.name }}" {% if batch.class_advisor==teacher.name %}selected{% endif %}>{{
+                        teacher.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label>Allocate Courses</label>
+                <div
+                    style="height: 150px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                    {% for course in courses %}
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <input type="checkbox" name="course_ids" value="{{ course._id }}" id="course_{{ course._id }}"
+                            style="width: auto; margin-right: 10px;" {% if course._id|string in batch.courses
+                            %}checked{% endif %}>
+                        <label for="course_{{ course._id }}" style="font-size: 0.9rem; cursor: pointer;">{{ course.code
+                            }} -
+                            {{ course.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label>Allocate Labs</label>
+                <div
+                    style="height: 150px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                    {% for lab in labs %}
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <input type="checkbox" name="lab_ids" value="{{ lab._id }}" id="lab_{{ lab._id }}"
+                            style="width: auto; margin-right: 10px;" {% if lab._id|string in batch.labs %}checked{%
+                            endif %}>
+                        <label for="lab_{{ lab._id }}" style="font-size: 0.9rem; cursor: pointer;">{{ lab.code }} - {{
+                            lab.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Update Batch & Allocations</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline"
+                style="width: 100%; margin-top: 10px; text-align: center;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

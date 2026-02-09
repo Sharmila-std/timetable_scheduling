@@ -1,0 +1,87 @@
+{% extends "dashboard_layout.html" %}
+
+{% block dashboard_content %}
+
+<h2 style="margin-bottom: 2rem; color: var(--primary-color);">My Personal Schedule</h2>
+
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>{{ 'Today\'s Schedule' if filter_day else 'Weekly Overview' }} for {{ name }}</h3>
+        {% if filter_day %}
+        <a href="/faculty/my_schedule" class="btn btn-sm btn-outline">Show Full Week</a>
+        {% endif %}
+    </div>
+
+    {% if filter_day and filter_day in ['Sat', 'Sun'] %}
+    <div class="glass-card"
+        style="text-align: center; padding: 3rem; background: rgba(255,255,255,0.8); margin-top: 2rem;">
+        <h4 style="color: #666;">No classes scheduled for {{ filter_day }}</h4>
+        <p>Enjoy your weekend!</p>
+        <a href="/faculty/my_schedule" class="btn btn-sm btn-outline" style="margin-top: 1rem;">Show Full
+            Week</a>
+    </div>
+    {% else %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+            <thead>
+                <tr style="background: var(--header-bg); color: #000; border-bottom: 2px solid #000;">
+                    <th style="padding: 10px; border: 1px solid #ccc; width: 100px;">Day</th>
+                    {% for i in range(1, 9) %}
+                    <th style="padding: 10px; border: 1px solid #ccc;">Slot {{ i }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                {% if not filter_day or filter_day == day %}
+                <tr style="border-bottom: 1px solid #ccc;">
+                    <th style="padding: 15px; border: 1px solid #ccc; background: #fff;">{{ day }}</th>
+                    {% for i in range(1, 9) %}
+                    {% set slot_num = i|string %}
+                    {% set session = schedule[day].get(slot_num) %}
+
+                    {% set cell_class = 'tt-cell' %}
+                    {% if session %}
+                    {% if session.is_substitution %}
+                    {% set cell_class = cell_class ~ ' tt-cell-sub' %}
+                    {% elif session.type == 'LAB' %}
+                    {% set cell_class = cell_class ~ ' tt-cell-lab' %}
+                    {% else %}
+                    {% set cell_class = cell_class ~ ' tt-cell-regular' %}
+                    {% endif %}
+                    {% endif %}
+
+                    <td class="{{ cell_class }}">
+
+                        {% if session %}
+                        <strong style="color: var(--primary-color); display: block;">{{ session.course_code
+                            }}</strong>
+                        <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 2px;">{{
+                            session.course_name }}</div>
+                        <div style="font-size: 0.85rem;">{{ session.batch }}</div>
+                        <div style="font-size: 0.8rem; color: #555;">{{ session.room }}</div>
+                        {% if session.is_substitution %}
+                        <div style="color: #d84315; font-size: 0.75rem; margin-top: 4px; font-weight: bold;">
+                            (Subbing for {{ session.substitued_for }})</div>
+                        {% endif %}
+                        {% if session.type == 'LAB' %}
+                        <div class="badge badge-info" style="font-size: 0.7rem; margin-top: 4px;">LAB</div>
+                        {% endif %}
+                        {% else %}
+                        <span style="color: #ccc;">-</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button onclick="window.print()" class="btn btn-outline">Print Schedule</button>
+    </div>
+</div>
+{% endblock %}

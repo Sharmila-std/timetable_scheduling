@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block layout_body %}
+<div class="dashboard-container">
+    {% include 'sidebar.html' %}
+
+    <main class="main-content animate-fade-in">
+        <!-- Flash Messages (Moved inside main content for dashboard) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom: 2rem;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div style="max-width: 1200px; margin: 0 auto;">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}

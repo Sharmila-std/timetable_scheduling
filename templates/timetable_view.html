@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable - {{ batch.name }}</title>
+    <style>
+        /* Standalone CSS for Print Capability */
+        :root {
+            --primary-color: #0047ab;
+            --header-bg: #ffeb3b;
+            /* Yellow from image */
+            --border-color: #000;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            /* Wide format */
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            background: var(--header-bg);
+            border: 2px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header-section {
+            flex: 1;
+            padding: 0 10px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .header-section:last-child {
+            border-right: none;
+        }
+
+        h2,
+        h3 {
+            margin: 5px 0;
+            font-size: 1rem;
+        }
+
+        /* Timetable Grid */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid var(--border-color);
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            vertical-align: middle;
+            height: 80px;
+            /* Fixed height for cells */
+        }
+
+        th {
+            background: white;
+            font-weight: bold;
+            height: auto;
+        }
+
+        /* Slot Colors - Mimic Image */
+        .slot-header {
+            background: #fffde7;
+        }
+
+        .day-header {
+            background: #fff;
+            font-weight: bold;
+        }
+
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .course-code {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .course-name {
+            font-size: 0.8rem;
+            color: #333;
+            margin: 2px 0;
+        }
+
+        .faculty-name {
+            font-size: 0.75rem;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .lab-cell {
+            background: #e1f5fe;
+            /* Light Blue for Labs */
+        }
+
+        .theory-cell {
+            background: #fff9c4;
+            /* Light Yellow for Theory */
+        }
+
+        .project-cell {
+            background: #fff;
+        }
+
+        /* Special Columns */
+        .break-col {
+            background: #fff3e0;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-weight: bold;
+            font-size: 1.1rem;
+            width: 40px;
+        }
+
+        .lunch-col {
+            background: #ffe0b2;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 60px;
+        }
+
+        /* Actions */
+        .actions {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #003380;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .actions {
+                display: none;
+            }
+
+            /* Force landscape if possible, but user usually chooses in print dialog */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header-info">
+            <div class="header-section">
+                <p><strong>Dept:</strong> Data Science</p>
+                <p><strong>Semester:</strong> Even SEM 2025-26</p>
+            </div>
+            <div class="header-section">
+                <h3>TIME TABLE: {{ batch.name }}</h3>
+                <p>Students: {{ batch.size }}</p>
+            </div>
+            <div class="header-section">
+                <p><strong>Class Room:</strong> AB-I E101</p>
+            </div>
+            <div class="header-section">
+                <p><strong>Faculty Advisor:</strong> Dr. L. Govindrao</p>
+                <p>Email: l_govindrao@cb.amrita.edu</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr class="slot-header">
+                    <th style="width: 80px;">Time/Day</th>
+                    <th>Slot 1<br>8:50 - 9:40</th>
+                    <th>Slot 2<br>9:40 - 10:30</th>
+                    <th>Slot 3<br>10:45 - 11:35</th>
+                    <th class="break-col" rowspan="7">Break</th>
+                    <th>Slot 4<br>11:35 - 12:25</th>
+                    <th class="lunch-col" rowspan="7">Lunch Break</th>
+                    <th>Slot 5<br>1:15 - 2:05</th>
+                    <th>Slot 6<br>2:05 - 2:55</th>
+                    <th>Slot 7<br>2:55 - 3:45</th>
+                    <th>Slot 8<br>3:45 - 4:35</th>
+                    <th>Slot 9<br>4:35 - 5:25</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                <tr>
+                    <td class="day-header">{{ day }}</td>
+
+                    <!-- Slots 1, 2, 3 -->
+                    {% for i in range(1, 4) %}
+                    {% set slot = timetable[day][i|string] %}
+                    <td class="{% if slot and slot.type == 'LAB' %}lab-cell{% elif slot %}theory-cell{% endif %}">
+                        {% if slot %}
+                        <div class="cell-content">
+                            <span class="course-code">{{ slot.code }}</span>
+                            <span class="course-name">{{ slot.name }}</span>
+                            <span class="faculty-name">{{ slot.faculty_name }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+
+                    <!-- Slot 4 -->
+                    {% set slot = timetable[day]['4'] %}
+                    <td class="{% if slot and slot.type == 'LAB' %}lab-cell{% elif slot %}theory-cell{% endif %}">
+                        {% if slot %}
+                        <div class="cell-content">
+                            <span class="course-code">{{ slot.code }}</span>
+                            <!-- <span class="course-name">{{ slot.name }}</span> Shorten for Slot 4 if needed -->
+                            <span class="faculty-name">{{ slot.faculty_name }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Slots 5, 6, 7, 8, 9 -->
+                    {% for i in range(5, 10) %}
+                    {% set slot = timetable[day][i|string] %}
+                    <td class="{% if slot and slot.type == 'LAB' %}lab-cell{% elif slot %}theory-cell{% endif %}">
+                        {% if slot %}
+                        <div class="cell-content">
+                            <span class="course-code">{{ slot.code }}</span>
+                            <span class="course-name">{{ slot.name }}</span>
+                            <span class="faculty-name">{{ slot.faculty_name }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button onclick="window.print()" class="btn">Download PDF / Print</button>
+            <a href="/admin" class="btn" style="background: #333; margin-left: 10px;">Back to Dashboard</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

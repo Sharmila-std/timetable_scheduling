@@ -1,0 +1,34 @@
+{% extends "dashboard_layout.html" %}
+
+{% block dashboard_content %}
+<h2 style="margin-bottom: 2rem; color: var(--primary-color);">Timetable Viewer</h2>
+
+<p class="mb-4">Select the batches below to view their previously generated timetables.</p>
+
+<form action="/admin/view_selected_timetables" method="POST">
+    <div class="glass-card">
+        <h3 style="margin-bottom: 1rem;">Saved Timetables</h3>
+
+        {% if batches %}
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            {% for batch in batches %}
+            <div
+                style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: white; display: flex; align-items: center;">
+                <input type="checkbox" name="batch_ids" value="{{ batch._id }}" id="batch_{{ batch._id }}"
+                    style="margin-right: 12px; width: 18px; height: 18px;">
+                <label for="batch_{{ batch._id }}" style="cursor: pointer; width: 100%;">
+                    <div style="font-weight: bold;">{{ batch.name }}</div>
+                    <div style="font-size: 0.85rem; color: #666;">Size: {{ batch.size }}</div>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">View Timetables</button>
+        {% else %}
+        <p>No generated timetables found. Use the Generation engine first.</p>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}

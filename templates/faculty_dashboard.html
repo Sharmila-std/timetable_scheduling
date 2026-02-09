@@ -1,0 +1,77 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Faculty Dashboard - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+    <div>
+        <h2 style="font-size: 2rem; color: #333;">Dashboard</h2>
+        <p style="color: #666; margin-top: 5px;">Overview of your schedule and tasks</p>
+    </div>
+    <div
+        style="display: flex; align-items: center; gap: 1rem; background: #fff; padding: 10px 20px; border-radius: 50px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <div style="text-align: right;">
+            <h4 style="font-size: 0.9rem; color: #333; margin: 0;">{{ name }}</h4>
+            {% if advisor_for %}
+            <span
+                style="font-size: 0.75rem; color: var(--primary-color); background: #e3f2fd; padding: 2px 8px; border-radius: 10px;">Class
+                Advisor: {{ advisor_for }}</span>
+            {% else %}
+            <span style="font-size: 0.75rem; color: #777;">Faculty Member</span>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+    <!-- Card 1 -->
+    <a href="{{ url_for('faculty_dashboard') }}/my_schedule?filter=today" class="glass-card"
+        style="display: block; text-decoration: none; transition: transform 0.2s; border-left: 6px solid var(--primary-color); padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="color: #555; font-size: 1.1rem; font-weight: 500;">Lectures Today</h3>
+                <p style="font-size: 3rem; font-weight: 700; color: #333; margin: 10px 0;">{{ lectures_today
+                    }}</p>
+            </div>
+            <div style="background: #e3f2fd; padding: 10px; border-radius: 10px;">
+                <span style="font-size: 1.5rem;">📅</span>
+            </div>
+        </div>
+        <p style="color: #777; font-size: 0.9rem;">View Today's Plan &rarr;</p>
+    </a>
+
+    <!-- Card 2 -->
+    <a href="{{ url_for('faculty_dashboard') }}/all_timetables" class="glass-card"
+        style="display: block; text-decoration: none; transition: transform 0.2s; border-left: 6px solid #d81b60; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="color: #555; font-size: 1.1rem; font-weight: 500;">All Timetables</h3>
+                <p style="font-size: 3rem; font-weight: 700; color: #333; margin: 10px 0;">View</p>
+            </div>
+            <div style="background: #fce4ec; padding: 10px; border-radius: 10px;">
+                <span style="font-size: 1.5rem;">📊</span>
+            </div>
+        </div>
+        <p style="color: #777; font-size: 0.9rem;">Check Student Batches &rarr;</p>
+    </a>
+</div>
+
+<!-- Quick Actions Grid -->
+<h3 style="margin-bottom: 1.5rem; color: #444;">Quick Management</h3>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+    <a href="{{ url_for('faculty_dashboard') }}/my_schedule"
+        style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #eee; text-decoration: none; color: inherit; transition: all 0.2s; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">🗓️</div>
+        <h4 style="margin-bottom: 0.5rem;">Full Schedule</h4>
+        <p style="font-size: 0.85rem; color: #777;">Weekly View</p>
+    </a>
+
+    <a href="{{ url_for('faculty_dashboard') }}/apply_leave"
+        style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #eee; text-decoration: none; color: inherit; transition: all 0.2s; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">📝</div>
+        <h4 style="margin-bottom: 0.5rem;">Apply Leave</h4>
+        <p style="font-size: 0.85rem; color: #777;">Request Time Off</p>
+    </a>
+</div>
+{% endblock %}

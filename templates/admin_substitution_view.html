@@ -1,0 +1,86 @@
+{% extends "dashboard_layout.html" %}
+
+{% block dashboard_content %}
+
+<h2 style="margin-bottom: 2rem; color: #ff9800;">Temporary Substitution Timetables</h2>
+<div class="glass-card" style="margin-bottom: 1rem; border-left: 5px solid #ff9800;">
+    <p><strong>Note:</strong> These are temporary schedules generated for approved leaves. Original timetables
+        remain unchanged.</p>
+</div>
+
+{% if results %}
+{% for entry in results %}
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <div>
+            <h3 style="color: var(--primary-color);">{{ entry.batch.name }} <span class="badge badge-warning"
+                    style="font-size: 0.8rem;">TEMPORARY</span></h3>
+            <p style="color: #666; font-size: 0.9rem;">Course: {{ entry.batch.course_name }}</p>
+        </div>
+        <div>
+            <a href="/admin/notify_advisor/{{ entry.id }}" class="btn btn-sm btn-primary"
+                style="margin-right: 10px;">Notify Advisor</a>
+            <a href="/admin/delete_substitution/{{ entry.id }}" class="btn btn-sm btn-danger"
+                onclick="return confirm('Are you sure you want to delete this substitution plan?')">Delete</a>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+            <thead>
+                <tr style="background: var(--header-bg); color: #000; border-bottom: 2px solid #000;">
+                    <th style="padding: 10px; border: 1px solid #ccc; width: 100px;">Day</th>
+                    {% for i in range(1, 9) %}
+                    <th style="padding: 10px; border: 1px solid #ccc;">Slot {{ i }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                <tr style="border-bottom: 1px solid #ccc;">
+                    <th style="padding: 15px; border: 1px solid #ccc; background: #fff;">{{ day }}</th>
+                    {% for i in range(1, 9) %}
+                    {% set slot_num = i|string %}
+                    {% set session = entry.timetable[day][slot_num] %}
+
+                    {% set cell_class = 'tt-cell' %}
+                    {% if session %}
+                    {% if session.is_substitution %}
+                    {% set cell_class = cell_class ~ ' tt-cell-sub' %}
+                    {% elif session.type == 'LAB' %}
+                    {% set cell_class = cell_class ~ ' tt-cell-lab' %}
+                    {% else %}
+                    {% set cell_class = cell_class ~ ' tt-cell-regular' %}
+                    {% endif %}
+                    {% endif %}
+
+                    <td class="{{ cell_class }}">
+
+                        {% if session %}
+                        <strong style="color: var(--primary-color);">{{ session.code }}</strong>
+                        <div style="font-size: 0.85rem; margin: 4px 0;">{{ session.name }}</div>
+                        <div style="font-size: 0.8rem; color: #555;">{{ session.room }}</div>
+                        <div style="font-size: 0.8rem; font-weight: bold; margin-top: 2px;">{{
+                            session.faculty_name }}</div>
+                        {% if session.is_substitution %}
+                        <div style="color: #d84315; font-size: 0.75rem; margin-top: 4px;"><strong>(Subbing for
+                                {{ session.substitued_for }})</strong></div>
+                        {% endif %}
+                        {% else %}
+                        <span style="color: #ccc;">-</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="glass-card">
+    <p>No temporary timetables generated yet.</p>
+</div>
+{% endif %}
+{% endblock %}

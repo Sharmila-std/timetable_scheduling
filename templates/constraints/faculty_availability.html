@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+
+{% block title %}Faculty Availability - AutoScheduler{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar (Copy from layout or include dynamically if we had a partial, but for now we rely on layout or just main content wrapper) -->
+    <!-- Ideally, this page should just be content inside the dashboard. 
+         But since we are linking to a separate route, we should maintain the sidebar structure or 
+         have a common dashboard layout.
+         
+         For simplicity in this step, let's assume we want to render the full dashboard layout again 
+         OR we can make this a standalone page with a "Back to Dashboard" link.
+         
+         Given the user wants a professional sidebar app, navigating away to a different page structure feels janky.
+         However, implementing a full SPA (Single Page App) transition for this might be complex without a JS framework.
+         
+         STRATEGY: Extended Sidebar Layout.
+         I will recreate the sidebar wrapper here so it feels like the same app.
+    -->
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">AutoScheduler</a>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="nav-item">Query Dashboard</a>
+            <div
+                style="padding: 0.8rem 1.5rem; font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-top: 1rem;">
+                Constraint Engine</div>
+            <a href="/admin/constraints/availability" class="nav-item active">Faculty Availability</a>
+            <a href="#" class="nav-item">Room Constraints</a>
+            <a href="#" class="nav-item">Global Constraints</a>
+            <a href="#" class="nav-item">Preferences</a>
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid #e0e0e0;">
+            <div style="margin-bottom: 1rem;">
+                <small style="color: #666;">Logged in as:</small><br>
+                <strong>{{ name }}</strong>
+            </div>
+            <a href="/logout" class="btn btn-outline" style="width: 100%; text-align: center;">Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="glass-card animate-fade-in">
+            <h2 style="margin-bottom: 1rem;">Faculty Availability Constraints</h2>
+            <p style="margin-bottom: 2rem; color: #666;">Select a faculty member and check the slots where they are
+                <strong>UNAVAILABLE</strong>.
+            </p>
+
+            <form action="/admin/constraints/availability" method="POST">
+                <div style="margin-bottom: 2rem;">
+                    <label>Select Faculty</label>
+                    <select name="faculty_id" id="facultySelect" onchange="loadAvailability()" required>
+                        <option value="" disabled selected>-- Choose Faculty --</option>
+                        {% for teacher in teachers %}
+                        <option value="{{ teacher._id }}">{{ teacher.name }} ({{ teacher.id_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 15px; border: 1px solid #e0e0e0;">Day / Slot</th>
+                                {% for i in range(1, 10) %}
+                                <th style="padding: 15px; border: 1px solid #e0e0e0;">Slot {{ i }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                            <tr>
+                                <td style="padding: 15px; font-weight: bold; border: 1px solid #e0e0e0;">{{ day }}</td>
+                                {% for i in range(1, 10) %}
+                                <td style="border: 1px solid #e0e0e0; padding: 0;">
+                                    <!-- Checkbox value: Day_Slot -->
+                                    <input type="checkbox" name="unavailable_slots" value="{{ day }}_{{ i }}"
+                                        class="slot-checkbox faculty-slot"
+                                        style="width: 20px; height: 20px; cursor: pointer; margin: 15px;">
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 2rem;">Save Availability</button>
+            </form>
+
+            <!-- Data holder for JS -->
+            <div id="availability-data" data-map="{{ availability_map|tojson|forceescape }}" style="display:none;">
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Pass the availability map from Python to JS via data attribute
+    const dataElement = document.getElementById('availability-data');
+    const availabilityMap = JSON.parse(dataElement.dataset.map);
+
+    function loadAvailability() {
+        const facultyId = document.getElementById('facultySelect').value;
+        const checkboxes = document.querySelectorAll('.slot-checkbox');
+
+        // Reset all
+        checkboxes.forEach(cb => cb.checked = false);
+
+        // Check if we have data for this faculty
+        if (availabilityMap[facultyId]) {
+            availabilityMap[facultyId].forEach(slot => {
+                // slot is like "Mon_1"
+                const cb = document.querySelector(`input[value="${slot}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+    }
+</script>
+{% endblock %}

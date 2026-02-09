@@ -1,0 +1,73 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="logo">AutoScheduler</a>
+    </div>
+
+    <div class="sidebar-nav">
+        <!-- Faculty Links -->
+        {% if session.get('role') == 'faculty' %}
+        <div class="nav-section-label">Faculty Portal</div>
+        <a href="{{ url_for('faculty_dashboard') }}"
+            class="nav-item {% if request.endpoint == 'faculty_dashboard' %}active{% endif %}">
+            <span>📊</span> Dashboard
+        </a>
+        <a href="{{ url_for('faculty_dashboard') }}/my_schedule"
+            class="nav-item {% if 'my_schedule' in request.endpoint %}active{% endif %}">
+            <span>📅</span> My Schedule
+        </a>
+        <a href="/faculty/all_timetables"
+            class="nav-item {% if 'all_timetables' in request.endpoint %}active{% endif %}">
+            <span>📂</span> All Timetables
+        </a>
+        <a href="/faculty/apply_leave" class="nav-item {% if 'leave' in request.endpoint %}active{% endif %}">
+            <span>📝</span> Apply Leave
+        </a>
+        {% endif %}
+
+        <!-- Student Links -->
+        {% if session.get('role') == 'student' %}
+        <div class="nav-section-label">Student Portal</div>
+        <a href="{{ url_for('student_dashboard') }}"
+            class="nav-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
+            <span>📊</span> Dashboard
+        </a>
+        <a href="/student/my_schedule" class="nav-item {% if 'my_schedule' in request.endpoint %}active{% endif %}">
+            <span>📅</span> My Timetable
+        </a>
+        {% endif %}
+
+        <!-- Admin Links (Fallback if accessing via direct route) -->
+        {% if session.get('role') == 'admin' %}
+        <div class="nav-section-label">Admin Portal</div>
+        <a href="{{ url_for('admin_dashboard') }}"
+            class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <span>📊</span> Dashboard
+        </a>
+        <a href="/admin/generate_timetable_multi" class="nav-item">
+            <span>⚙️</span> Generate Timetable
+        </a>
+        {% endif %}
+
+        <!-- Contextual Links -->
+        {% if request.endpoint == 'generation_monitor' %}
+        <a href="#" class="nav-item active">
+            <span>📡</span> Generation Monitor
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- User Profile Footer -->
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">{{ session.get('name', 'U')[:1] }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ session.get('name', 'User') }}</div>
+                <div class="user-role">{{ session.get('role', 'Guest')|capitalize }}</div>
+            </div>
+        </div>
+        <a href="/logout" class="btn btn-outline"
+            style="width: 100%; padding: 8px; font-size: 0.85rem; border-radius: 8px;">
+            <span style="margin-right: 6px;">↪️</span> Logout
+        </a>
+    </div>
+</div>

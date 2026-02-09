@@ -1,0 +1,355 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+    :root {
+        --primary-color: #0047ab;
+        --header-bg: #ffeb3b;
+        --border-color: #000;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f0f2f5;
+        padding: 20px;
+    }
+
+    .master-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .controls {
+        margin-bottom: 20px;
+        text-align: right;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        cursor: pointer;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-green {
+        background: #28a745;
+    }
+
+    .timetable-wrapper {
+        background: white;
+        padding: 20px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        page-break-inside: avoid;
+        page-break-after: always;
+        break-after: always;
+    }
+
+    .timetable-wrapper:last-child {
+        page-break-after: auto;
+        break-after: auto;
+    }
+
+    /* Reusing Table Styles */
+    .header-info {
+        display: flex;
+        justify-content: space-between;
+        background: var(--header-bg);
+        border: 2px solid var(--border-color);
+        padding: 10px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid var(--border-color);
+        table-layout: fixed;
+        margin-bottom: 20px;
+    }
+
+    th,
+    td {
+        border: 1px solid var(--border-color);
+        padding: 5px;
+        text-align: center;
+        font-size: 0.8rem;
+        vertical-align: middle;
+        height: 60px;
+    }
+
+    th {
+        background: white;
+        font-weight: bold;
+        height: auto;
+        position: sticky;
+        top: 0;
+    }
+
+    .slot-header {
+        background: #fffde7;
+    }
+
+    .day-header {
+        background: #fff;
+        font-weight: bold;
+    }
+
+    .course-code {
+        font-weight: bold;
+        display: block;
+    }
+
+    .faculty-name {
+        font-size: 0.7rem;
+        color: #d32f2f;
+        font-weight: bold;
+    }
+
+    .lab-cell {
+        background: #e1f5fe;
+    }
+
+    .theory-cell {
+        background: #fff9c4;
+    }
+
+    /* Summary Table Styles */
+    .summary-table th {
+        background: #f0f0f0;
+        text-align: left;
+        padding: 8px;
+    }
+
+    .summary-table td {
+        text-align: left;
+        padding: 8px;
+        height: auto;
+    }
+
+    .summary-title {
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    @media print {
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .master-container {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .controls {
+            display: none;
+        }
+
+        .timetable-wrapper {
+            box-shadow: none;
+            border: none;
+            padding: 0;
+            margin-bottom: 20px;
+            page-break-after: always;
+            break-after: always;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+    <div class="master-container" id="content-to-print">
+        <div class="controls" data-html2canvas-ignore="true">
+            <button onclick="downloadPDF()" class="btn btn-green" style="margin-right: 10px;">Download PDF</button>
+            <button onclick="window.print()" class="btn">Print / Save as PDF</button>
+            <a href="/admin" class="btn" style="background: #333; margin-left: 10px;">Back to Dashboard</a>
+        </div>
+
+        <h1 style="text-align: center; margin-bottom: 30px;">Master Timetable Schedule</h1>
+
+        {% for item in results %}
+        <div class="timetable-wrapper">
+            <div class="header-info">
+                <div><strong>Batch:</strong> {{ item.batch.name }}</div>
+                <div><strong>Size:</strong> {{ item.batch.size }} Students</div>
+                <div><strong>Dept:</strong> Data Science</div>
+                {% if item.batch.class_advisor %}
+                <div><strong>Advisor:</strong> {{ item.batch.class_advisor }}</div>
+                {% endif %}
+            </div>
+
+            <div style="text-align: right; margin-bottom: 10px;">
+                {% if item.batch.class_advisor %}
+                <a href="/admin/email_original_tt/{{ item.batch._id }}" class="btn btn-sm btn-primary"
+                    onclick="return confirm('Send Update to Advisor?')"
+                    style="padding: 5px 10px; font-size: 0.9rem;">Email Advisor</a>
+                {% endif %}
+            </div>
+
+            <!-- Timetable Grid -->
+            <table>
+                <thead>
+                    <tr class="slot-header">
+                        <th style="width: 60px;">Day/Time</th>
+                        <th>Slot 1</th>
+                        <th>Slot 2</th>
+                        <th>Slot 3</th>
+                        <th>Slot 4</th>
+                        <th>Slot 5</th>
+                        <th>Slot 6</th>
+                        <th>Slot 7</th>
+                        <th>Slot 8</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                    <tr>
+                        <td class="day-header">{{ day }}</td>
+
+                        {% for i in range(1, 9) %}
+                        {% set slot = item.timetable[day][i|string] %}
+
+                        <!-- Logic for merged cell: if slot is assigned, check if previous was same lab -->
+                        {% set prev_slot_idx = i - 1 %}
+                        {% set prev_slot = item.timetable[day][prev_slot_idx|string] %}
+
+                        {% if slot and slot.type == 'LAB' and prev_slot and prev_slot.type == 'LAB' and prev_slot.code
+                        == slot.code %}
+                        <!-- Second half of lab: merged visually -->
+                        <td class="lab-cell" style="border-left: none;" {% if slot and slot.is_substitution %}
+                            style="border-left: none; background-color: #fff3e0; border-top: 2px dashed #ff9800 !important; border-bottom: 2px dashed #ff9800 !important; border-right: 2px dashed #ff9800 !important;"
+                            {% endif %}>
+                            <div style="font-size:0.6rem; color:#555;"></div>
+                        </td>
+                        {% elif slot and slot.type == 'LAB' %}
+                        <!-- First half of lab -->
+                        <td class="lab-cell" style="border-right: none;" {% if slot and slot.is_substitution %}
+                            style="border-right: none; background-color: #fff3e0; border-top: 2px dashed #ff9800 !important; border-bottom: 2px dashed #ff9800 !important; border-left: 2px dashed #ff9800 !important;"
+                            {% endif %}>
+                            {% if slot.is_substitution %}
+                            <span class="course-code" style="color: #e65100;">{{ slot.code }}</span>
+                            <div style="font-size:0.55rem; color:#d84315; margin-bottom:1px; line-height:1.1;">{{
+                                slot.name or '' }}</div>
+                            <span class="faculty-name" style="color: #bf360c;">{{ slot.faculty_name }}</span>
+                            <div style="font-size:0.6rem; color:#ff3d00; font-weight:bold;">{{ slot.room }}</div>
+                            <div style="font-size:0.5rem; color:#ff3d00; font-weight:bold; margin-top:2px;">(SUB)</div>
+                            {% else %}
+                            <span class="course-code">{{ slot.code }}</span>
+                            <div style="font-size:0.55rem; color:#444; margin-bottom:1px; line-height:1.1;">{{ slot.name
+                                or '' }}</div>
+                            <span class="faculty-name">{{ slot.faculty_name }}</span>
+                            <div style="font-size:0.6rem; color:#555;">{{ slot.room }}</div>
+                            {% endif %}
+                        </td>
+                        {% else %}
+                        <!-- Theory or Empty -->
+                        <td class="{% if slot %}theory-cell{% endif %}" {% if slot and slot.is_substitution %}
+                            style="background-color: #fff3e0; border: 2px dashed #ff9800 !important;" {% endif %}>
+                            {% if slot %}
+                            {% if slot.is_substitution %}
+                            <span class="course-code" style="color: #e65100;">{{ slot.code }}</span>
+                            <div style="font-size:0.55rem; color:#d84315; margin-bottom:1px; line-height:1.1;">{{
+                                slot.name or '' }}</div>
+                            <span class="faculty-name" style="color: #bf360c;">{{ slot.faculty_name }}</span>
+                            <div style="font-size:0.6rem; color:#ff3d00; font-weight:bold;">{{ slot.room }}</div>
+                            <div style="font-size:0.5rem; color:#ff3d00; font-weight:bold; margin-top:2px;">
+                                (SUBSTITUTION)</div>
+                            {% else %}
+                            <span class="course-code">{{ slot.code }}</span>
+                            <div style="font-size:0.55rem; color:#444; margin-bottom:1px; line-height:1.1;">{{ slot.name
+                                or '' }}</div>
+                            <span class="faculty-name">{{ slot.faculty_name }}</span>
+                            <div style="font-size:0.6rem; color:#555;">{{ slot.room }}</div>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Course Summary Table -->
+            <div class="summary-title">Course Allocation Details</div>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Course Code</th>
+                        <th>Course Name</th>
+                        <th style="width: 25%;">Faculty</th>
+                        <th style="width: 10%;">Credits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Extract Fac Map from Timetable first -->
+                    {% set fac_map = {} %}
+                    {% for d in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] %}
+                    {% for s in range(1, 9) %}
+                    {% set sl = item.timetable[d][s|string] %}
+                    {% if sl %}
+                    {% set _ = fac_map.update({sl.code: sl.faculty_name}) %}
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+
+                    <!-- Render Courses -->
+                    {% for c in item.batch.courses_enriched %}
+                    <tr>
+                        <td><strong>{{ c.code }}</strong></td>
+                        <td>{{ c.name }} <strong>(Theory)</strong></td>
+                        <td>{{ fac_map.get(c.code, 'N/A') }}</td>
+                        <td>{{ c.credits }}</td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Render Labs -->
+                    {% for l in item.batch.labs_enriched %}
+                    <tr>
+                        <td><strong>{{ l.code }}</strong></td>
+                        <td>{{ l.name }} <strong>(Lab)</strong></td>
+                        <td>{{ fac_map.get(l.code, 'N/A') }}</td>
+                        <td>{{ l.credits }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('content-to-print');
+            const opt = {
+                margin: 0.2,
+                filename: 'Master_Timetable.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1.5, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Show loading or status
+            const btn = document.querySelector('.btn-green');
+            const originalText = btn.innerText;
+            btn.innerText = "Generating PDF...";
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerText = originalText;
+            });
+        }
+    </script>
+
+</body>
+
+</html>

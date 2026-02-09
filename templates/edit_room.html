@@ -1,0 +1,35 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Edit Room - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: flex; justify-content: center;">
+    <div class="glass-card animate-fade-in" style="width: 100%; max-width: 500px;">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">Edit Room</h2>
+        <form action="/admin/edit_room/{{ room._id }}" method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label>Room Number</label>
+                <input type="text" name="number" value="{{ room.number }}" required>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label>Type</label>
+                <select name="type" required
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="Lecture Hall" {% if room.type=='Lecture Hall' %}selected{% endif %}>Lecture Hall
+                    </option>
+                    <option value="Lab" {% if room.type=='Lab' %}selected{% endif %}>Lab</option>
+                    <option value="Seminar Hall" {% if room.type=='Seminar Hall' %}selected{% endif %}>Seminar Hall
+                    </option>
+                </select>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label>Capacity</label>
+                <input type="number" name="capacity" value="{{ room.capacity }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Update Room</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline"
+                style="width: 100%; margin-top: 10px; text-align: center;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

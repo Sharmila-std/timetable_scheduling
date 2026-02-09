@@ -1,0 +1,164 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Student Dashboard - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <h2>Welcome, {{ name }}</h2>
+    <p>Here is your schedule overview for <strong>{{ batch.name }}</strong>.</p>
+</div>
+
+<!-- Today's Schedule -->
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">
+        Today's Schedule ({{ today_day }})
+        {% if substitutions %}
+        <span class="badge badge-warning" style="font-size: 0.8rem; vertical-align: middle;">Changes
+            Active</span>
+        {% endif %}
+    </h3>
+
+    {% if today_schedule %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Slot</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Course</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Faculty</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Room</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in today_schedule %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: bold;">{{ slot.slot }}</td>
+                    <td style="padding: 12px;">
+                        <div>{{ slot.course_code }}</div>
+                        <small style="color: #666;">{{ slot.course_name }}</small>
+                    </td>
+                    <td style="padding: 12px;">{{ slot.faculty }}</td>
+                    <td style="padding: 12px;">{{ slot.room }}</td>
+                    <td style="padding: 12px;">
+                        {% if slot.is_substitution %}
+                        <span style="color: #e65100; font-weight: bold;">Substituted</span>
+                        {% else %}
+                        <span style="color: #2e7d32;">Scheduled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: #666; font-style: italic;">No classes scheduled for today.</p>
+    {% endif %}
+</div>
+
+<!-- Timetable Tabs -->
+<div class="glass-card">
+    <h3 style="margin-bottom: 1rem;">Full Timetable</h3>
+
+    {% if original_tt %}
+    <!-- Week Grid -->
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #ddd;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 10px; border: 1px solid #ddd; width: 80px;">Day/Time</th>
+                    {% for i in range(1, 9) %}
+                    <th style="padding: 10px; border: 1px solid #ddd;">Slot {{ i }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in ["Mon", "Tue", "Wed", "Thu", "Fri"] %}
+                <tr>
+                    <td style="font-weight: bold; background-color: #f9f9f9; border: 1px solid #ddd;">{{ day }}
+                    </td>
+                    {% for slot_num in range(1, 9) %}
+                    <td style="border: 1px solid #ddd; padding: 5px; height: 80px; vertical-align: top;">
+                        {% set slot_key = slot_num|string %}
+                        {% if original_tt.timetable[day] and original_tt.timetable[day][slot_key] %}
+                        {% set session = original_tt.timetable[day][slot_key] %}
+
+                        {% if session.is_substitution %}
+                        <div
+                            style="background-color: #fff3e0; border: 1px dashed #ff9800; padding: 4px; border-radius: 4px; height: 100%;">
+                            <div style="font-weight: bold; font-size: 0.9rem; color: #e65100;">{{ session.code }}</div>
+                            <div style="font-size: 0.8rem; color: #bf360c;">{{ session.name }}</div>
+                            <div style="font-size: 0.8rem; color: #d84315;">{{ session.faculty_name }}</div>
+                            <div style="font-size: 0.8rem; color: #333;">{{ session.room }}</div>
+                            <div style="font-size: 0.7rem; color: #ff3d00; font-weight: bold; margin-top: 2px;">
+                                (Substitution)</div>
+                        </div>
+                        {% else %}
+                        <div style="padding: 4px;">
+                            <div style="font-weight: bold; font-size: 0.9rem; color: #1565c0;">{{ session.code }}</div>
+                            <div style="font-size: 0.8rem; color: #444;">{{ session.name }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">{{ session.faculty_name }}</div>
+                            <div style="font-size: 0.8rem; color: #333;">{{ session.room }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No timetable found for your batch.</p>
+    {% endif %}
+</div>
+
+<!-- Original Timetable (Reference) -->
+<div class="glass-card" style="margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem; color: #666;">Original Saved Timetable (Reference)</h3>
+
+    {% if real_original_tt %}
+    <div style="overflow-x: auto;">
+        <table
+            style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #ddd; opacity: 0.8;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 10px; border: 1px solid #ddd; width: 80px;">Day/Time</th>
+                    {% for i in range(1, 9) %}
+                    <th style="padding: 10px; border: 1px solid #ddd;">Slot {{ i }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in ["Mon", "Tue", "Wed", "Thu", "Fri"] %}
+                <tr>
+                    <td style="font-weight: bold; background-color: #f9f9f9; border: 1px solid #ddd;">{{ day }}</td>
+                    {% for slot_num in range(1, 9) %}
+                    <td style="border: 1px solid #ddd; padding: 5px; height: 80px; vertical-align: top;">
+                        {% set slot_key = slot_num|string %}
+                        {% if real_original_tt.timetable[day] and real_original_tt.timetable[day][slot_key] %}
+                        {% set session = real_original_tt.timetable[day][slot_key] %}
+                        <div style="font-weight: bold; font-size: 0.9rem; color: #1565c0;">{{ session.code }}</div>
+                        <div style="font-size: 0.8rem; color: #444;">{{ session.name }}</div>
+                        <div style="font-size: 0.8rem; color: #666;">{{ session.faculty_name }}</div>
+                        <div style="font-size: 0.8rem; color: #333;">{{ session.room }}</div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No original timetable record found.</p>
+    {% endif %}
+</div>
+</main>
+</div>
+{% endblock %}

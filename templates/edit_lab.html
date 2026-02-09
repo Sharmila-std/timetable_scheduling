@@ -1,0 +1,24 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Edit Lab - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: flex; justify-content: center;">
+    <div class="glass-card animate-fade-in" style="width: 100%; max-width: 500px;">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">Edit Lab</h2>
+        <form action="/admin/edit_lab/{{ lab._id }}" method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label>Lab Code</label>
+                <input type="text" name="code" value="{{ lab.code }}" required>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label>Lab Name</label>
+                <input type="text" name="name" value="{{ lab.name }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Update Lab</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline"
+                style="width: 100%; margin-top: 10px; text-align: center;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

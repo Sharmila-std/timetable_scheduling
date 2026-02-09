@@ -1,0 +1,560 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - AutoScheduler{% endblock %}
+
+{% block layout_body %}
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo">AutoScheduler</a>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item active" onclick="switchTab('overview')">
+                <span>📊</span> Overview
+            </a>
+
+            <div class="nav-section-label">Management</div>
+            <a class="nav-item" onclick="switchTab('faculty')"><span>👨‍🏫</span> Manage Faculty</a>
+            <a class="nav-item" onclick="switchTab('courses')"><span>📚</span> Manage Courses</a>
+            <a class="nav-item" onclick="switchTab('labs')"><span>🔬</span> Manage Labs</a>
+            <a class="nav-item" onclick="switchTab('rooms')"><span>🏢</span> Manage Rooms</a>
+            <a class="nav-item" onclick="switchTab('batches')"><span>👥</span> Manage Batches</a>
+
+            <div class="nav-section-label">Optimization Engine</div>
+            <a href="/admin/generate_timetable_multi" class="nav-item"><span>⚙️</span> Generate Timetable</a>
+            <a href="/admin/timetable_viewer" class="nav-item"><span>📅</span> Saved Timetables</a>
+
+            <div class="nav-section-label">Requests & Subs</div>
+            <a href="/admin/leave_requests" class="nav-item"><span>📩</span> Leave Requests</a>
+            <a href="/admin/view_substitutions" class="nav-item"><span>🔄</span> Substitutions</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">{{ name[:1] }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ name }}</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+            <a href="/logout" class="btn btn-outline"
+                style="width: 100%; padding: 8px; font-size: 0.85rem; border-radius: 8px;">
+                <span style="margin-right: 6px;">↪️</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Overview Section -->
+        <div id="section-overview" class="tab-content active">
+            <div class="glass-card">
+                <h2>Dashboard Overview</h2>
+                <p>Welcome back, {{ name }}. Select a module from the sidebar to manage your institution's data.</p>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                    <!-- Faculty Card -->
+                    <div class="stat-card blue">
+                        <div class="stat-icon blue">👨‍🏫</div>
+                        <div class="stat-content">
+                            <h3>{{ teachers|length }}</h3>
+                            <p>Faculty Members</p>
+                        </div>
+                    </div>
+
+                    <!-- Courses Card -->
+                    <div class="stat-card purple">
+                        <div class="stat-icon purple">📚</div>
+                        <div class="stat-content">
+                            <h3>{{ courses|length }}</h3>
+                            <p>Courses Offered</p>
+                        </div>
+                    </div>
+
+                    <!-- Labs Card -->
+                    <div class="stat-card green">
+                        <div class="stat-icon green">🔬</div>
+                        <div class="stat-content">
+                            <h3>{{ labs|length }}</h3>
+                            <p>Active Labs</p>
+                        </div>
+                    </div>
+
+                    <!-- Batches Card -->
+                    <div class="stat-card orange">
+                        <div class="stat-icon orange">👥</div>
+                        <div class="stat-content">
+                            <h3>{{ batches|length }}</h3>
+                            <p>Student Batches</p>
+                        </div>
+                    </div>
+
+                    <!-- Substitutions Card -->
+                    <div class="stat-card red">
+                        <div class="stat-icon red">🔄</div>
+                        <div class="stat-content">
+                            <h3>{{ substitutions_count }}</h3>
+                            <p>Active Substitutions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Teachers -->
+        <div id="section-faculty" class="tab-content">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Manage Faculty</h3>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 12px;">Name</th>
+                                <th style="padding: 12px;">ID</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in teachers %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">{{ teacher.name }}</td>
+                                <td style="padding: 12px;">{{ teacher.id_number }}</td>
+                                <td style="padding: 12px;">
+                                    <button onclick="viewDetails('faculty', '{{ teacher._id }}')"
+                                        class="btn btn-primary"
+                                        style="padding: 2px 8px; font-size: 0.8rem; margin-right: 5px;">View</button>
+                                    <a href="/admin/edit_teacher/{{ teacher._id }}"
+                                        style="color: var(--primary-color); text-decoration: none; margin-right: 15px;">Edit</a>
+                                    <a href="/admin/delete_teacher/{{ teacher._id }}"
+                                        style="color: #ff6b6b; text-decoration: none;">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Add New Faculty</h4>
+                    <form action="/admin/add_teacher" method="POST"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="text" name="name" placeholder="Name" required autocomplete="off">
+                        <input type="email" name="email" placeholder="Email" required autocomplete="off">
+                        <input type="text" name="id_number" placeholder="ID Number" required autocomplete="off">
+                        <input type="password" name="password" placeholder="Password" required
+                            autocomplete="new-password">
+
+                        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Qualified
+                                    Courses</label>
+                                <div
+                                    style="height: 150px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                                    {% for course in courses %}
+                                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                        <input type="checkbox" name="course_ids" value="{{ course._id }}"
+                                            id="new_faculty_course_{{ course._id }}"
+                                            style="width: auto; margin-right: 10px;">
+                                        <label for="new_faculty_course_{{ course._id }}"
+                                            style="font-size: 0.9rem; cursor: pointer;">{{ course.code }} - {{
+                                            course.name }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Qualified
+                                    Labs</label>
+                                <div
+                                    style="height: 150px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                                    {% for lab in labs %}
+                                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                        <input type="checkbox" name="lab_ids" value="{{ lab._id }}"
+                                            id="new_faculty_lab_{{ lab._id }}" style="width: auto; margin-right: 10px;">
+                                        <label for="new_faculty_lab_{{ lab._id }}"
+                                            style="font-size: 0.9rem; cursor: pointer;">{{
+                                            lab.code }} - {{ lab.name }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <button type="submit" class="btn btn-primary">Add Faculty</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Courses -->
+        <div id="section-courses" class="tab-content">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Manage Courses</h3>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 12px;">Code</th>
+                                <th style="padding: 12px;">Name</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">{{ course.code }}</td>
+                                <td style="padding: 12px;">{{ course.name }}</td>
+                                <td style="padding: 12px;">
+                                    <button onclick="viewDetails('course', '{{ course._id }}')" class="btn btn-primary"
+                                        style="padding: 2px 8px; font-size: 0.8rem; margin-right: 5px;">View</button>
+                                    <a href="/admin/edit_course/{{ course._id }}"
+                                        style="color: var(--primary-color); text-decoration: none; margin-right: 15px;">Edit</a>
+                                    <a href="/admin/delete_course/{{ course._id }}"
+                                        style="color: #ff6b6b; text-decoration: none;">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Add New Course</h4>
+                    <form action="/admin/add_course" method="POST"
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+                        <input type="text" name="code" placeholder="Course Code" required autocomplete="off">
+                        <input type="text" name="name" placeholder="Course Name" required autocomplete="off">
+                        <input type="number" name="credits" placeholder="Credits" required autocomplete="off">
+                        <select name="preferred_session">
+                            <option value="Any">Any Session</option>
+                            <option value="FN">Forenoon (FN)</option>
+                            <option value="AN">Afternoon (AN)</option>
+                        </select>
+                        <div style="grid-column: span 4;">
+                            <button type="submit" class="btn btn-primary">Add Course</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Labs -->
+        <div id="section-labs" class="tab-content">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Manage Labs</h3>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 12px;">Code</th>
+                                <th style="padding: 12px;">Name</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lab in labs %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">{{ lab.code }}</td>
+                                <td style="padding: 12px;">{{ lab.name }}</td>
+                                <td style="padding: 12px;">
+                                    <button onclick="viewDetails('lab', '{{ lab._id }}')" class="btn btn-primary"
+                                        style="padding: 2px 8px; font-size: 0.8rem; margin-right: 5px;">View</button>
+                                    <a href="/admin/edit_lab/{{ lab._id }}"
+                                        style="color: var(--primary-color); text-decoration: none; margin-right: 15px;">Edit</a>
+                                    <a href="/admin/delete_lab/{{ lab._id }}"
+                                        style="color: #ff6b6b; text-decoration: none;">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Add New Lab</h4>
+                    <form action="/admin/add_lab" method="POST"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="text" name="code" placeholder="Lab Code" required autocomplete="off">
+                        <input type="text" name="name" placeholder="Lab Name" required autocomplete="off">
+                        <div style="grid-column: span 2;">
+                            <button type="submit" class="btn btn-primary">Add Lab</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Rooms -->
+        <div id="section-rooms" class="tab-content">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Manage Rooms</h3>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 12px;">Room</th>
+                                <th style="padding: 12px;">Type</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room in rooms %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">{{ room.number }}</td>
+                                <td style="padding: 12px;">{{ room.type }}</td>
+                                <td style="padding: 12px;">
+                                    <button onclick="viewDetails('room', '{{ room._id }}')" class="btn btn-primary"
+                                        style="padding: 2px 8px; font-size: 0.8rem; margin-right: 5px;">View</button>
+                                    <a href="/admin/edit_room/{{ room._id }}"
+                                        style="color: var(--primary-color); text-decoration: none; margin-right: 15px;">Edit</a>
+                                    <a href="/admin/delete_room/{{ room._id }}"
+                                        style="color: #ff6b6b; text-decoration: none;">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Add New Room</h4>
+                    <form action="/admin/add_room" method="POST"
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <input type="text" name="number" placeholder="Room Number" required autocomplete="off">
+                        <select name="type" required style="margin: 8px 0;">
+                            <option value="Lecture Hall">Lecture Hall</option>
+                            <option value="Lab">Lab</option>
+                            <option value="Seminar Hall">Seminar Hall</option>
+                        </select>
+                        <input type="number" name="capacity" placeholder="Capacity" required autocomplete="off">
+                        <div style="grid-column: span 3;">
+                            <button type="submit" class="btn btn-primary">Add Room</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Batches -->
+        <div id="section-batches" class="tab-content">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Manage Batches</h3>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--card-border);">
+                                <th style="padding: 12px;">Group Name</th>
+                                <th style="padding: 12px;">Size</th>
+                                <th style="padding: 12px;">Courses</th>
+                                <th style="padding: 12px;">Labs</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch in batches %}
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">{{ batch.name }}</td>
+                                <td style="padding: 12px;">{{ batch.size }}</td>
+                                <td style="padding: 12px;">{{ batch.courses|length }} assigned</td>
+                                <td style="padding: 12px;">{{ batch.labs|length }} assigned</td>
+                                <td style="padding: 12px;">
+                                    <button onclick="viewDetails('batch', '{{ batch._id }}')" class="btn btn-primary"
+                                        style="padding: 2px 8px; font-size: 0.8rem; margin-right: 5px;">View</button>
+                                    <a href="/admin/edit_batch/{{ batch._id }}"
+                                        style="color: var(--primary-color); text-decoration: none; margin-right: 15px;">Edit</a>
+                                    <a href="/admin/delete_batch/{{ batch._id }}"
+                                        style="color: #ff6b6b; text-decoration: none;">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Add New Batch</h4>
+                    <form action="/admin/add_batch" method="POST"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+                        <div>
+                            <label>Batch Details</label>
+                            <input type="text" name="name" placeholder="Group Name (e.g. CS-2024-A)" required
+                                autocomplete="off">
+                            <input type="number" name="size" placeholder="Number of Students" required
+                                autocomplete="off">
+                        </div>
+
+                        <div>
+                            <label>Allocate Courses</label>
+                            <div
+                                style="height: 120px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                                {% for course in courses %}
+                                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                    <input type="checkbox" name="course_ids" value="{{ course._id }}"
+                                        id="course_{{ course._id }}" style="width: auto; margin-right: 10px;">
+                                    <label for="course_{{ course._id }}" style="font-size: 0.9rem; cursor: pointer;">{{
+                                        course.code }} - {{
+                                        course.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <label>Allocate Labs</label>
+                            <div
+                                style="height: 100px; overflow-y: auto; border: 2px solid #e0e0e0; padding: 10px; border-radius: 6px; background: white;">
+                                {% for lab in labs %}
+                                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                    <input type="checkbox" name="lab_ids" value="{{ lab._id }}" id="lab_{{ lab._id }}"
+                                        style="width: auto; margin-right: 10px;">
+                                    <label for="lab_{{ lab._id }}" style="font-size: 0.9rem; cursor: pointer;">{{
+                                        lab.code }} - {{ lab.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <label>Class Advisor</label>
+                                <select name="class_advisor"
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <option value="">Select Class Advisor</option>
+                                    {% for teacher in teachers %}
+                                    {% if teacher.name in used_advisors %}
+                                    <option value="{{ teacher.name }}" disabled style="color: #999;">{{ teacher.name
+                                        }} (Assigned)</option>
+                                    {% else %}
+                                    <option value="{{ teacher.name }}">{{ teacher.name }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Add
+                                Batch & Allocate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- View Details Modal -->
+<div id="viewModal"
+    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div
+        style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 50%; border-radius: 8px; position: relative;">
+        <span onclick="closeModal()"
+            style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2 id="modalTitle" style="margin-bottom: 1rem; color: var(--primary-color);">Details</h2>
+        <div id="modalContent" style="max-height: 400px; overflow-y: auto;">
+            <!-- Content loaded via JS -->
+            <p>Loading...</p>
+        </div>
+        <div style="margin-top: 1.5rem; text-align: right;">
+            <button onclick="closeModal()" class="btn btn-outline">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabName) {
+        // Hide all tabs
+        const tabs = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => tab.classList.remove('active'));
+
+        // Show selected tab
+        const selectedTab = document.getElementById('section-' + tabName);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+
+        // Update nav state
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(tabName)) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    // Modal Logic
+    const modal = document.getElementById("viewModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    async function viewDetails(type, id) {
+        modal.style.display = "block";
+        modalTitle.innerText = "Values Loading...";
+        modalContent.innerHTML = '<p>Fetching details...</p>';
+
+        try {
+            const response = await fetch(`/api/${type}/${id}`);
+            if (!response.ok) throw new Error("Failed to fetch data");
+            const data = await response.json();
+
+            modalTitle.innerText = data.title || "Details";
+
+            let html = '<table style="width:100%; border-collapse: collapse;">';
+
+            for (const [key, value] of Object.entries(data.details)) {
+                // Simple key-value display, can be enhanced for arrays (courses/labs)
+                html += `<tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; font-weight: bold; width: 30%; text-transform: capitalize;">${key.replace(/_/g, ' ')}</td>
+                        <td style="padding: 10px;">${formatValue(value)}</td>
+                     </tr>`;
+            }
+            html += '</table>';
+
+            modalContent.innerHTML = html;
+
+        } catch (e) {
+            modalContent.innerHTML = `<p style="color: red;">Error: ${e.message}</p>`;
+        }
+    }
+
+    function formatValue(val) {
+        if (Array.isArray(val)) {
+            if (val.length === 0) return "None";
+            // Check if array of objects (like courses)
+            if (typeof val[0] === 'object') {
+                return val.map(item => {
+                    if (item.code && item.name) {
+                        let text = `<div style="margin-bottom: 4px;">• <strong>${item.code}</strong> - ${item.name}`;
+                        if (item.credits) {
+                            text += ` <span style="font-size: 0.85em; color: #666;">(${item.credits} Credits)</span>`;
+                        }
+                        text += `</div>`;
+                        return text;
+                    }
+                    return `<div style="margin-bottom: 4px;">• ${item.code || item.name || JSON.stringify(item)}</div>`;
+                }).join('');
+            }
+            return val.join(', ');
+        }
+        if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+        return val;
+    }
+</script>
+{% endblock %}

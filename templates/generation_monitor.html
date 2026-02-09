@@ -1,0 +1,109 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Optimization Monitor - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-card">
+    <h1>Optimization In Progress...</h1>
+    <p>Request ID: <code style="background: #eee; padding: 2px 5px; border-radius: 4px;">{{ req._id }}</code>
+    </p>
+
+    <div style="margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <strong>Status:</strong>
+            <span id="status-badge"
+                style="background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-weight: bold;">{{
+                req.status }}</span>
+        </div>
+        <!-- Progress Bar -->
+        <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+            <div id="progress-bar"
+                style="width: 0%; height: 100%; background: var(--primary-color); transition: width 0.5s;">
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <h3>Live System Logs</h3>
+        <div id="log-container"
+            style="background: #1e1e1e; color: #0f0; font-family: 'Courier New', monospace; padding: 1rem; height: 300px; overflow-y: auto; border-radius: 8px; border: 1px solid #333;">
+            <div class="log-entry">[SYSTEM] Initializing Optimization Engine...</div>
+            <div class="log-entry">[SYSTEM] Waiting for execution...</div>
+        </div>
+    </div>
+
+    <!-- Hidden Trigger to actually run the logic if we are doing pseudo-async -->
+    <button id="start-btn" class="btn btn-primary" onclick="runOptimization()" style="margin-top: 1rem;">Start
+        Execution Now</button>
+    <a href="/admin/timetable/view_multi/{{ req._id }}" id="view-result-btn" class="btn btn-success"
+        style="display: none; margin-top: 1rem;">View Final Timetable</a>
+</div>
+
+<script>
+    const reqId = "{{ req._id }}";
+    const logContainer = document.getElementById('log-container');
+    const progressBar = document.getElementById('progress-bar');
+    const statusBadge = document.getElementById('status-badge');
+    const startBtn = document.getElementById('start-btn');
+    const viewBtn = document.getElementById('view-result-btn');
+
+    function addLog(msg) {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerText = `> ${msg}`;
+        logContainer.appendChild(div);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // In a real app, this would use Server-Sent Events (SSE) or WebSockets.
+    // For this prototype, we'll use a fetch loop or a triggers.
+
+    async function runOptimization() {
+        startBtn.style.display = 'none';
+        addLog("Sending Start Command to Backend...");
+
+        try {
+            // Call an endpoint that RUNS the logic and returns (or streams)
+            // Ideally, we start a background task. Since we are in simple Flask, we will call a distinct route that runs it synchronously but we stream response?
+            // Or easier: We use an AJAX call that waits.
+
+            const response = await fetch(`/admin/run_optimization/${reqId}`);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                // Chunk might contain multiple log lines
+                const lines = chunk.split('\n');
+                lines.forEach(line => {
+                    if (line.trim()) {
+                        if (line.includes("PROGRESS:")) {
+                            const pct = line.split(':')[1];
+                            progressBar.style.width = pct + '%';
+                        } else if (line.includes("STATUS:")) {
+                            statusBadge.innerText = line.split(':')[1];
+                        } else if (line.includes("DONE")) {
+                            viewBtn.style.display = 'inline-block';
+                            progressBar.style.width = '100%';
+                            statusBadge.innerText = 'COMPLETED';
+                            statusBadge.style.background = '#e8f5e9';
+                            statusBadge.style.color = '#2e7d32';
+                        } else {
+                            addLog(line);
+                        }
+                    }
+                });
+            }
+
+        } catch (e) {
+            addLog("ERROR: " + e.message);
+        }
+    }
+
+    // Auto-start for better UX? Or let user click?
+    // Let's let user click for now to see "Waiting" state.
+</script>
+{% endblock %}

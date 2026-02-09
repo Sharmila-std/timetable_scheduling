@@ -1,0 +1,75 @@
+{% extends "dashboard_layout.html" %}
+
+{% block dashboard_content %}
+<h2 style="margin-bottom: 2rem; color: var(--primary-color);">Apply for Leave</h2>
+
+<div class="glass-card animate-fade-in" style="max-width: 600px; margin-bottom: 3rem;">
+    <form method="POST" action="/faculty/apply_leave">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #555;">Leave Type</label>
+            <select name="type" class="form-control" required
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+                <option value="Casual Leave">Casual Leave</option>
+                <option value="Sick Leave">Sick Leave</option>
+                <option value="On Duty">On Duty</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; color: #555;">From Date</label>
+                <input type="date" name="start_date" class="form-control" required
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; color: #555;">To Date</label>
+                <input type="date" name="end_date" class="form-control" required
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #555;">Reason</label>
+            <textarea name="reason" class="form-control" rows="3" required
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">Submit Request</button>
+    </form>
+</div>
+
+<h3 style="margin-bottom: 1.5rem; color: #333;">My Leave History</h3>
+<div class="glass-card animate-fade-in">
+    {% if history %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                    <th style="padding: 15px; color: #555;">Type</th>
+                    <th style="padding: 15px; color: #555;">Dates</th>
+                    <th style="padding: 15px; color: #555;">Reason</th>
+                    <th style="padding: 15px; color: #555;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in history %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px;">{{ leave.type }}</td>
+                    <td style="padding: 15px;">{{ leave.start_date }} to {{ leave.end_date }}</td>
+                    <td style="padding: 15px; color: #666;">{{ leave.reason }}</td>
+                    <td style="padding: 15px;">
+                        <span
+                            class="badge badge-{{ 'success' if leave.status == 'Approved' else 'danger' if leave.status == 'Rejected' else 'warning' }}">
+                            {{ leave.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: #777; font-style: italic;">No leave history found.</p>
+    {% endif %}
+</div>
+{% endblock %}

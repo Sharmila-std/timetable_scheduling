@@ -1,0 +1,51 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Generate Optimized Timetable - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-card animate-fade-in">
+    <h2 style="margin-bottom: 1rem; color: var(--primary-color);">Multi-Batch Optimization Engine</h2>
+    <p style="margin-bottom: 2rem; color: #666;">Select the batches you want to schedule together. The engine
+        will optimize across all selected batches to prevent global conflicts.</p>
+
+    <form action="/admin/start_generation" method="POST">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% for batch in batches %}
+            <div
+                style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; transition: 0.2s; position: relative; background: #fff;">
+                <input type="checkbox" name="batch_ids" value="{{ batch._id }}" id="batch_{{ batch._id }}"
+                    style="width: 20px; height: 20px; position: absolute; top: 1.5rem; right: 1.5rem; cursor: pointer;">
+
+                <label for="batch_{{ batch._id }}"
+                    style="font-weight: 700; font-size: 1.1rem; display: block; margin-bottom: 0.5rem; cursor: pointer;">
+                    {{ batch.name }}
+                </label>
+
+                <div style="color: #666; font-size: 0.9rem;">
+                    <div>Students: <strong>{{ batch.size }}</strong></div>
+                    <div>Courses: <strong>{{ batch.courses|length }}</strong></div>
+                    <div>Labs: <strong>{{ batch.labs|length }}</strong></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="alert alert-info" style="text-align: left; display: flex; align-items: flex-start; gap: 1rem;">
+            <div style="font-size: 1.5rem;">ℹ️</div>
+            <div>
+                <strong>Note:</strong> Generating a multi-batch timetable typically takes 30-60 seconds per
+                batch.
+                You will be redirected to the <strong>Generation Monitor</strong> to watch the optimization
+                process in real-time.
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 30px;">
+            Start Optimization Pipeline 🚀
+        </button>
+    </form>
+</div>
+</main>
+</div>
+{% endblock %}

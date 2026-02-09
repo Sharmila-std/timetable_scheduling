@@ -1,0 +1,38 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Edit Course - AutoScheduler{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: flex; justify-content: center;">
+    <div class="glass-card animate-fade-in" style="width: 100%; max-width: 500px;">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">Edit Course</h2>
+        <form action="/admin/edit_course/{{ course._id }}" method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label>Course Code</label>
+                <input type="text" name="code" value="{{ course.code }}" required>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label>Course Name</label>
+                <input type="text" name="name" value="{{ course.name }}" required>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label>Credits</label>
+                <input type="number" name="credits" value="{{ course.credits }}" required>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label>Preferred Session</label>
+                <select name="preferred_session"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="Any" {% if course.preferred_session=='Any' %}selected{% endif %}>Any Session</option>
+                    <option value="FN" {% if course.preferred_session=='FN' %}selected{% endif %}>Forenoon (FN)</option>
+                    <option value="AN" {% if course.preferred_session=='AN' %}selected{% endif %}>Afternoon (AN)
+                    </option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Update Course</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline"
+                style="width: 100%; margin-top: 10px; text-align: center;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

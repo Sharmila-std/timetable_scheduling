@@ -14,7 +14,6 @@ app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
 # MongoDB Connection
 # user provided: mongodb+srv://sharmila:123456_sharmila@capstone.3xycmpu.mongodb.net/?appName=capstone
 # DB_NAME=se_tt
-MONGO_URI = "mongodb+srv://sharmila:123456_sharmila@capstone.3xycmpu.mongodb.net/?appName=capstone"
 client = MongoClient(MONGO_URI)
 db = client['se_tt']
 users_collection = db['users']
@@ -1260,3 +1259,4 @@ def api_get_batch(id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
